@@ -6,67 +6,85 @@
 /*   By: swied <swied@student.42heilbronn.de>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:42:10 by swied             #+#    #+#             */
-/*   Updated: 2025/03/31 16:49:23 by swied            ###   ########.fr       */
+/*   Updated: 2025/04/04 18:03:19 by swied            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include <stdio.h>
 #include <unistd.h>
-#define BUFFER_SIZE 100
+
+int	connect_lines(char *buff, char **new_line)
+{
+	char	*temp;
+	size_t	i;
+
+	i = 0;
+	if (!*new_line)
+	{
+		*new_line = malloc(1);
+		if (!*new_line)
+			return (-1);
+		(*new_line)[0] = '\0';
+	}
+	temp = ft_strjoin_gnl(*new_line, buff);
+	free(*new_line);
+	if (temp == NULL)
+		return (-1);
+	*new_line = temp;
+	while ((*new_line)[i] != '\0')
+	{
+		if ((*new_line)[i] == '\n')
+			return (1);
+		i++;
+	}
+	return (0);
+}
 
 char	*get_next_line(int fd)
 {
-	static char		*buff = NULL;
-	char			*line;
-	static size_t	bytes_read;
-	size_t			j;
-	static size_t	i = 0;
+	static char	buff[BUFFER_SIZE + 1];
+	char		*new_line;
+	int			read_bytes;
+	int			flag;
 
-	if (fd < 0)
+	new_line = NULL;
+	if (fd < 0 || fd > FOPEN_MAX || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (i == 0)
+	while (1)
 	{
-		buff = malloc(BUFFER_SIZE + 1);
-		if (!buff)
-			return (NULL);
-		bytes_read = read(fd, buff, BUFFER_SIZE);
-		if (bytes_read <= 0)
+		if (buff[0] == '\0')
 		{
-			free(buff);
-			return (NULL);
+			read_bytes = read(fd, buff, BUFFER_SIZE);
+			if (read_bytes == -1)
+				return (free_line(new_line));
+			if (read_bytes == 0)
+				return (new_line);
 		}
-		buff[bytes_read] = '\0';
+		flag = connect_lines(buff, &new_line);
+		delete_buff(buff);
+		if (flag == 1)
+			return (new_line);
+		if (flag == -1)
+			return (NULL);
 	}
-	line = malloc(BUFFER_SIZE + 1);
-	if (!line)
-		return (NULL);
-	j = 0;
-	while (i < bytes_read && buff[i] != '\n')
-	{
-		line[j++] = buff[i++];
-	}
-	if (i < bytes_read && buff[i] == '\n')
-		line[j++] = buff[i++];
-	line[j] = '\0';
-	if (i >= bytes_read)
-	{
-		free(buff);
-		buff = NULL;
-		i = 0;
-	}
-	return (line);
 }
 
-int	main(void)
-{
-	int		fd;
-	char	*line;
+// int	main(void)
+// {
+// 	int		fd;
+// 	char	*line;
 
-	fd = open("textfile1.txt", O_RDONLY);
-	printf("%s", get_next_line(fd));
-	printf("%s", get_next_line(fd));
-	printf("%s", get_next_line(fd));
-	close(fd);
-	return (0);
-}
+// 	fd = open("textfile1.txt", O_RDONLY);
+// 	line = get_next_line(fd);
+// 	printf("%s", line);
+// 	free(line);
+// 	line = get_next_line(fd);
+// 	printf("%s", line);
+// 	free(line);
+// 	line = get_next_line(fd);
+// 	printf("%s", line);
+// 	free(line);
+// 	close(fd);
+// 	return (0);
+// }
